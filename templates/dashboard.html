@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+  <!-- LEFT: Card, Balance & Simulated ATM Terminal (5 Cols) -->
+  <div class="lg:col-span-5 space-y-6">
+
+    <!-- Smart Cyber Debit Card -->
+    <div class="relative rounded-3xl p-7 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 border border-cyan-500/30 shadow-2xl text-white">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <span class="text-[10px] font-mono-tech text-cyan-400 uppercase font-bold flex items-center gap-1.5">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i> ROBOVAULT 88 DEBIT
+          </span>
+          <span class="text-xs text-slate-400 font-mono-tech">EXP: 12/32</span>
+        </div>
+        <i data-lucide="radio" class="w-5 h-5 text-cyan-300 opacity-80 rotate-90"></i>
+      </div>
+
+      <!-- Gold Microchip -->
+      <div class="w-12 h-9 rounded bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 border border-yellow-200/80 mb-6 p-1 grid grid-cols-2 gap-0.5">
+        <div class="border border-amber-800/40"></div>
+        <div class="border border-amber-800/40"></div>
+        <div class="border border-amber-800/40 col-span-2"></div>
+      </div>
+
+      <div class="text-xl font-mono-tech font-bold tracking-widest text-slate-100 mb-6">
+        ACC: #{{ user.account_number }}
+      </div>
+
+      <div class="flex justify-between items-end pt-2 border-t border-slate-800">
+        <div>
+          <span class="text-[9px] font-mono-tech uppercase text-slate-400 block">CARDHOLDER</span>
+          <span class="font-bold text-sm tracking-wide uppercase">{{ user.username }}</span>
+        </div>
+        <span class="text-[10px] font-mono-tech text-emerald-400 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded">STATUS: ACTIVE</span>
+      </div>
+    </div>
+
+    <!-- Balance Banner -->
+    <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl flex justify-between items-center">
+      <div>
+        <span class="text-[11px] font-mono-tech text-slate-400 uppercase tracking-wider block">Available Vault Balance</span>
+        <div class="text-3xl font-mono-tech font-black text-emerald-400 mt-1">
+          $<span id="user-balance">{{ "%.2f"|format(user.balance) }}</span>
+        </div>
+      </div>
+      <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <i data-lucide="vault" class="w-6 h-6"></i>
+      </div>
+    </div>
+
+    <!-- Simulated ATM Terminal (Deposit / Withdraw / Change PIN) -->
+    <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl shadow-xl">
+      <div class="flex border-b border-slate-800 pb-3 mb-4 gap-2">
+        <button id="tab-deposit" class="atm-tab px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">DEPOSIT</button>
+        <button id="tab-withdraw" class="atm-tab px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold bg-slate-800 text-slate-400 border border-slate-700">WITHDRAW</button>
+        <button id="tab-pin" class="atm-tab px-3 py-1.5 rounded-lg text-xs font-mono-tech font-bold bg-slate-800 text-slate-400 border border-slate-700">CHANGE PIN</button>
+      </div>
+
+      <div id="tx-alert" class="hidden mb-4 text-xs font-mono-tech p-3 rounded-xl border"></div>
+
+      <!-- Deposit / Withdraw Form -->
+      <form id="atm-form" class="space-y-4">
+        <input type="hidden" id="action-type" value="DEPOSIT">
+        
+        <div>
+          <label id="amount-label" class="block text-[11px] font-mono-tech uppercase text-slate-400 mb-1">Deposit Amount ($)</label>
+          <input type="number" step="0.01" id="atm-amount" required placeholder="0.00"
+                 class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-sm font-mono-tech text-white focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-tech uppercase text-slate-400 mb-1">4-Digit Security PIN (Verification)</label>
+          <input type="password" maxlength="4" id="atm-pin" required placeholder="••••"
+                 class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-sm font-mono-tech text-white focus:outline-none tracking-widest">
+        </div>
+
+        <button type="submit" id="atm-submit-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-mono-tech font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span id="atm-btn-text">AUTHORIZE DEPOSIT</span>
+        </button>
+      </form>
+
+      <!-- Change PIN Form (Hidden by default) -->
+      <form id="pin-form" class="space-y-4 hidden">
+        <div>
+          <label class="block text-[11px] font-mono-tech uppercase text-slate-400 mb-1">Current 4-Digit PIN</label>
+          <input type="password" maxlength="4" id="old-pin" required placeholder="••••"
+                 class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-400 rounded-xl px-4 py-2.5 text-sm font-mono-tech text-white focus:outline-none tracking-widest">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-tech uppercase text-slate-400 mb-1">New 4-Digit PIN</label>
+          <input type="password" maxlength="4" id="new-pin" required placeholder="••••"
+                 class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-400 rounded-xl px-4 py-2.5 text-sm font-mono-tech text-white focus:outline-none tracking-widest">
+        </div>
+
+        <button type="submit" id="pin-submit-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-mono-tech font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          <span>UPDATE SECURITY PIN</span>
+        </button>
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Cryptographic Receipts & Security Audit Trail (7 Cols) -->
+  <div class="lg:col-span-7 space-y-6">
+    
+    <!-- Transaction History -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <h3 class="font-bold text-sm font-mono-tech text-white uppercase tracking-wider mb-4 flex items-center gap-2 pb-3 border-b border-slate-800">
+        <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+        Cryptographic Ledger Receipts
+      </h3>
+
+      <div class="space-y-3">
+        {% if transactions %}
+          {% for tx in transactions %}
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center border {% if tx.transaction_type == 'DEPOSIT' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-400{% else %}bg-rose-500/10 border-rose-500/30 text-rose-400{% endif %}">
+                  <i data-lucide="{% if tx.transaction_type == 'DEPOSIT' %}arrow-down-left{% else %}arrow-up-right{% endif %}" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-mono-tech font-bold text-white uppercase">{{ tx.transaction_type }}</div>
+                  <div class="text-[10px] font-mono-tech text-slate-500">RECEIPT TOKEN: #{{ tx.security_hash }}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-mono-tech font-bold text-sm {% if tx.transaction_type == 'DEPOSIT' %}text-emerald-400{% else %}text-rose-400{% endif %}">
+                  {% if tx.transaction_type == 'DEPOSIT' %}+{% else %}-{% endif %}${{ "%.2f"|format(tx.amount) }}
+                </div>
+                <div class="text-[10px] font-mono-tech text-slate-500">{{ tx.timestamp.strftime('%H:%M:%S &bull; %b %d')|safe }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="py-8 text-center text-slate-500 font-mono-tech text-xs">NO TRANSACTIONS RECORDED YET.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Security Audit Logs (Requirement: Security Features After Each Transaction) -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <h3 class="font-bold text-sm font-mono-tech text-white uppercase tracking-wider mb-4 flex items-center gap-2 pb-3 border-b border-slate-800">
+        <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+        Terminal Security Events Log
+      </h3>
+
+      <div class="space-y-2">
+        {% for log in logs %}
+          <div class="text-xs font-mono-tech p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex justify-between items-center">
+            <span class="text-cyan-400 font-semibold">[{{ log.event_type }}]</span>
+            <span class="text-slate-300 truncate max-w-xs">{{ log.details }}</span>
+            <span class="text-slate-500 text-[10px]">{{ log.timestamp.strftime('%H:%M:%S') }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

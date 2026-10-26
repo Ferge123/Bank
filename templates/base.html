@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>RoboVault 88 // Cybernetic Galactic Reserve</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: #030712;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 100% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
+
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 py-3.5 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-emerald-400 p-[1.5px] flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+          <i data-lucide="shield-check" class="text-emerald-400 w-5 h-5"></i>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-base tracking-wider text-white">ROBO<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">VAULT 88</span></span>
+          <span class="text-[9px] uppercase font-mono-tech px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">GALACTIC RESERVE</span>
+        </div>
+        <p class="text-[10px] text-slate-500 font-mono-tech hidden sm:block">INTERGALACTIC QUANTUM VAULT &bull; ZERO-KNOWLEDGE LEDGER</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      {% if session.get('user_id') %}
+        <span class="text-xs font-mono-tech text-slate-400 hidden md:block">
+          ROLE: <span class="text-emerald-400 font-bold uppercase">{{ session.get('role') }}</span>
+        </span>
+        <a href="{{ url_for('logout') }}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-mono-tech transition">
+          <i data-lucide="power" class="w-3.5 h-3.5"></i>
+          <span>TERMINATE</span>
+        </a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="flex-grow p-4 sm:p-8 max-w-7xl w-full mx-auto">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-xl text-sm font-mono-tech flex items-center gap-3 border backdrop-blur-md {% if category == 'danger' %}bg-rose-950/60 border-rose-600/40 text-rose-200{% else %}bg-emerald-950/60 border-emerald-600/40 text-emerald-200{% endif %}">
+            <i data-lucide="info" class="w-5 h-5"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-900 bg-slate-950/90 px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-[11px] font-mono-tech text-slate-500 gap-2">
+    <div>ROBOVAULT 88 &copy; 2026 // FEDERATION STANDARD SPECIFICATION</div>
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>AUTOMATED FRAUD SHIELD ACTIVE</span>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
